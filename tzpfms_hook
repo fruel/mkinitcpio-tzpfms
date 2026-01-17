@@ -1,0 +1,42 @@
+#!/usr/bin/ash
+
+tzpfms_import_pool () {
+    if [ -z "${ZFS_DATASET}" ] ; then
+        err "ZFS TPM: ZFS_DATASET is not set. Did the zfs hook run?"
+        return 1
+    fi
+
+    if [ "${ZFS_DATASET}" = "bootfs" ] ; then
+        err "ZFS TPM: bootfs not supported for TPM unlock. Use zfs= cmdline instead."
+        return 1
+    fi
+
+    local pool="${ZFS_DATASET%%/*}"
+    local rwopt_exp="${rwopt:-ro}"
+
+    if ! zpool list -H "${pool}" > /dev/null 2>&1; then
+        if [ ! "${rwopt_exp}" = "rw" ]; then
+            msg "ZFS TPM: Importing pool ${pool} readonly."
+            ZPOOL_IMPORT_FLAGS="${ZPOOL_IMPORT_FLAGS} -o readonly=on"
+        else
+            msg "ZFS TPM: Importing pool ${pool}."
+        fi
+
+        if ! zpool import ${ZPOOL_IMPORT_FLAGS} -N "${pool}" ${ZPOOL_FORCE} ; then
+            err "ZFS TPM: Unable to import pool ${pool}."
+            return 1
+        fi
+    fi
+    return 0
+}
+
+run_hook ()
+{
+    tzpfms_import_pool || return
+
+    local tpm_encryptionroots="$(zfs-tpm-list -b TPM2 -u -H | cut -f1)"
+    for encryptionroot in ${tpm_encryptionroots}; do
+        echo "ZFS TPM: Unlocking ${encryptionroot}"
+        zfs-tpm2-load-key "${encryptionroot}"
+    done
+}

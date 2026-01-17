@@ -1,0 +1,22 @@
+#!/bin/bash
+
+build ()
+{
+    add_module "tpm_tis"
+    add_module "tpm_crb"
+
+    add_binary "/usr/bin/zfs-tpm-list" "/bin/zfs-tpm-list"
+    add_binary "/usr/bin/zfs-tpm2-load-key" "/bin/zfs-tpm2-load-key"
+
+    add_binary "/usr/lib/libtss2-tcti-device.so"
+
+    add_runscript
+}
+
+help ()
+{
+    cat<<HELPEOF
+Hook to automatically unlock encrypted ZFS volumes using key information stored in a TPM2 chip.
+Requites that the TPM-based ZFS encryption has been set up with zfs-tpm2-load-key from tzpfms.
+HELPEOF
+}
