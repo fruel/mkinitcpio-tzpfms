@@ -6,7 +6,7 @@ Requires `tzpfms`:
  * https://git.sr.ht/~nabijaczleweli/tzpfms
  * https://aur.archlinux.org/packages/tzpfms
 
-# Setup:
+# Setup
 
 * Prerequisites:
   * Secure boot is enabled - see for example:
@@ -25,9 +25,10 @@ Requires `tzpfms`:
   ```
   HOOKS=(base udev autodetect microcode kms modconf block keyboard keymap consolefont zfs tzpfms filesystems fsck)
   ```
+* Rebuild initramfs: `sudo mkinitcpio -P`
 * Bind the ZFS encryption key to the TPM2 PCRs.
   ```
-  zfs-tpm2-change-key -b ./recovery.key -P sha256:7 zpcachyos
+  sudo zfs-tpm2-change-key -b ./recovery.key -P sha256:7 zpcachyos
   ```
   * This replaces the previous encryption key/password. To unlock the disk without TPM in the future, you will need the `./recovery.key` file. Store it in a secure location. To unlock the ZFS filesystem if you loose access to the TPM use `cat ./recovery.key | zfs load-key zpcachyos`.
   * The example above just uses PCR register 7 which means a valid secure boot state is required for unlocking the disk. There are many other PCRs that can be used. For more information, check:
